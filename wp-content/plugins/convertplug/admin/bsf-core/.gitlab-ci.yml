@@ -1,0 +1,41 @@
+variables:
+  # Configure mysql service (https://hub.docker.com/_/mysql/)
+  MYSQL_DATABASE: wordpress_tests
+  MYSQL_ROOT_PASSWORD: mysql
+
+stages:
+  - lint
+
+PHP Lint - Minimum Version:
+  stage: lint
+  image: devilbox/php-fpm:5.2-prod
+  services:
+    - mysql:5.6
+  script:
+  # Lint PHP code for syntax errors.
+  - if find . -name "*.php" ! -path "./vendor/*" ! -path "./admin/bsf-core/*" -exec php -l {} \; | grep "Errors parsing\|deprecated"; then exit 1; fi
+
+PHP Lint - Stable Version:
+  stage: lint
+  image: devilbox/php-fpm:7.3-work
+  cache:
+    paths:
+      - vendor/
+  services:
+    - mysql:5.6
+  script:
+  # Install PHPCS and WPCS
+  - composer install
+
+  - vendor/bin/phpcs
+  # Lint PHP code for syntax errors.
+  - if find . -name "*.php" ! -path "./vendor/*" ! -path "./admin/bsf-core/*" -exec php -l {} \; | grep "Errors parsing\|deprecated"; then exit 1; fi
+
+PHP Lint - Nightly Version:
+  stage: lint
+  image: devilbox/php-fpm:7.4-prod
+  services:
+    - mysql:5.6
+  script:
+  # Lint PHP code for syntax errors.
+  - if find . -name "*.php" ! -path "./vendor/*" ! -path "./admin/bsf-core/*" -exec php -l {} \; | grep "Errors parsing\|deprecated"; then exit 1; fi
